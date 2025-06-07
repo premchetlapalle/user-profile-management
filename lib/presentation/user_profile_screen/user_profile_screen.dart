@@ -1,20 +1,19 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:user_profile_management_app/presentation/user_profile_screen/bloc/user_profile_screen_bloc.dart';
-import 'package:user_profile_management_app/presentation/user_profile_screen/bloc/user_profile_screen_event.dart';
-import 'package:user_profile_management_app/presentation/user_profile_screen/bloc/user_profile_screen_state.dart';
-import '../../api_services/firestore_service.dart';
+import 'package:user_profile_management_app/api_services/firestore_service.dart';
+import 'bloc/user_profile_screen_bloc.dart';
+import 'bloc/user_profile_screen_event.dart';
+import 'bloc/user_profile_screen_state.dart';
 
 class UserProfileScreen extends StatelessWidget {
   final String userId;
+
   const UserProfileScreen({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
+      create: (_) =>
       UserProfileBloc(firestoreService: FirestoreService())
         ..add(LoadUserProfileEvent(userId: userId)),
       child: Scaffold(
@@ -30,7 +29,6 @@ class UserProfileScreen extends StatelessWidget {
                 child: Center(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       CircleAvatar(
                         radius: 50,
@@ -42,11 +40,11 @@ class UserProfileScreen extends StatelessWidget {
                             data["image"].toString().isEmpty)
                             ? Image.asset(
                           'assets/images/profile.png',
-                          height: 200,
+                          height: 100,
                         )
                             : null,
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Padding(
@@ -55,32 +53,58 @@ class UserProfileScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Personal Info
+                                const Text("Personal Info",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 10),
                                 LabelValueRow(
-                                    label: "Full Name",
+                                    label: "Name",
                                     value: data["fullName"] ?? ""),
-                                const SizedBox(height: 10),
-                                LabelValueRow(
-                                    label: "Job", value: data["job"] ?? ""),
-                                const SizedBox(height: 10),
                                 LabelValueRow(
                                     label: "Date of Birth",
                                     value: data["dob"] ?? ""),
-                                const SizedBox(height: 10),
                                 LabelValueRow(
-                                    label: "About", value: data["about"] ?? ""),
-                                const SizedBox(height: 10),
-                                LabelValueRow(
-                                    label: "Email", value: data["email"] ?? ""),
-                                const SizedBox(height: 10),
-                                LabelValueRow(
-                                    label: "Phone", value: data["phone"] ?? ""),
-                                const SizedBox(height: 10),
+                                    label: "Gender",
+                                    value: data["gender"] ?? ""),
                                 LabelValueRow(
                                     label: "Address",
                                     value: data["address"] ?? ""),
+                                const SizedBox(height: 20),
+
+                                // Education
+                                const Text("Education",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 10),
                                 LabelValueRow(
-                                    label: "Gender", value: data["gender"] ?? ""),
+                                    label: "Degree",
+                                    value: data["degree"] ?? ""),
+                                LabelValueRow(
+                                    label: "Institution",
+                                    value: data["institution"] ?? ""),
+                                LabelValueRow(
+                                    label: "Year of Passing",
+                                    value: data["yearOfPassing"] ?? ""),
+                                const SizedBox(height: 20),
+
+                                // Occupation
+                                const Text("Occupation",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 10),
+                                LabelValueRow(
+                                    label: "Job Title",
+                                    value: data["job"] ?? ""),
+                                LabelValueRow(
+                                    label: "Company",
+                                    value: data["company"] ?? ""),
+                                LabelValueRow(
+                                    label: "Experience",
+                                    value: data["experience"] ?? ""),
                               ],
                             ),
                           ),
@@ -113,26 +137,29 @@ class LabelValueRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 120,
-          child: Text(
-            "$label:",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 16),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 16),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

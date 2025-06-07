@@ -3,13 +3,15 @@ import 'package:equatable/equatable.dart';
 
 class EditProfileState extends Equatable {
   final String fullName;
-  final String job;
-  final String about;
   final String dob;
-  final String address;
-  final String email;
-  final String phone;
   final String gender;
+  final String address;
+  final String degree;
+  final String institution;
+  final String yearOfPassing;
+  final String jobTitle;
+  final String company;
+  final String experience;
   final File? image;
   final String? imageUrl;
   final bool isLoading;
@@ -18,13 +20,15 @@ class EditProfileState extends Equatable {
 
   const EditProfileState({
     this.fullName = "",
-    this.job = "",
-    this.about = "",
     this.dob = "",
-    this.address = "",
-    this.email = "",
-    this.phone = "",
     this.gender = "",
+    this.address = "",
+    this.degree = "",
+    this.institution = "",
+    this.yearOfPassing = "",
+    this.jobTitle = "",
+    this.company = "",
+    this.experience = "",
     this.image,
     this.imageUrl,
     this.isLoading = false,
@@ -34,13 +38,15 @@ class EditProfileState extends Equatable {
 
   EditProfileState copyWith({
     String? fullName,
-    String? job,
-    String? about,
     String? dob,
-    String? address,
-    String? email,
-    String? phone,
     String? gender,
+    String? address,
+    String? degree,
+    String? institution,
+    String? yearOfPassing,
+    String? jobTitle,
+    String? company,
+    String? experience,
     File? image,
     String? imageUrl,
     bool? isLoading,
@@ -49,31 +55,35 @@ class EditProfileState extends Equatable {
   }) {
     return EditProfileState(
       fullName: fullName ?? this.fullName,
-      job: job ?? this.job,
-      about: about ?? this.about,
       dob: dob ?? this.dob,
-      address: address ?? this.address,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
       gender: gender ?? this.gender,
+      address: address ?? this.address,
+      degree: degree ?? this.degree,
+      institution: institution ?? this.institution,
+      yearOfPassing: yearOfPassing ?? this.yearOfPassing,
+      jobTitle: jobTitle ?? this.jobTitle,
+      company: company ?? this.company,
+      experience: experience ?? this.experience,
       image: image ?? this.image,
       imageUrl: imageUrl ?? this.imageUrl,
       isLoading: isLoading ?? this.isLoading,
-      isSuccess: isSuccess ?? false,
-      isError: isError ?? false,
+      isSuccess: isSuccess ?? this.isSuccess,
+      isError: isError ?? this.isError,
     );
   }
 
   @override
   List<Object?> get props => [
     fullName,
-    job,
-    about,
     dob,
-    address,
-    email,
-    phone,
     gender,
+    address,
+    degree,
+    institution,
+    yearOfPassing,
+    jobTitle,
+    company,
+    experience,
     image,
     imageUrl,
     isLoading,

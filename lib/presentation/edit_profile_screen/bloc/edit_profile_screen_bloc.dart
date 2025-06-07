@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:user_profile_management_app/api_services/firestore_service.dart';
-import 'edit_profile_screen_event.dart';
-import 'edit_profile_screen_state.dart';
+import 'package:user_profile_management_app/presentation/edit_profile_screen/bloc/edit_profile_screen_event.dart';
+import 'package:user_profile_management_app/presentation/edit_profile_screen/bloc/edit_profile_screen_state.dart';
+
 
 class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
   final FirestoreService firestoreService;
@@ -33,14 +34,16 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
         final data = doc.data()!;
         emit(state.copyWith(
           fullName: data["fullName"] ?? "",
-          job: data["job"] ?? "",
-          about: data["about"] ?? "",
           dob: data["dob"] ?? "",
-          address: data["address"] ?? "",
-          email: data["email"] ?? "",
-          phone: data["phone"] ?? "",
           gender: data["gender"] ?? "",
-          imageUrl: data["image"] ?? "",
+          address: data["address"] ?? "",
+          degree: data["degree"] ?? "",
+          institution: data["institution"] ?? "",
+          yearOfPassing: data["yearOfPassing"] ?? "",
+          jobTitle: data["jobTitle"] ?? "",
+          company: data["company"] ?? "",
+          experience: data["experience"] ?? "",
+          imageUrl: data["image"]?.toString(),
           isLoading: false,
           isError: false,
           isSuccess: false,
@@ -48,7 +51,7 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
       } else {
         emit(state.copyWith(isLoading: false));
       }
-    } catch (e) {
+    } catch (_) {
       emit(state.copyWith(isError: true, isLoading: false));
     }
   }
@@ -71,7 +74,7 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
     if (state.image != null) {
       try {
         imageUrl = await firestoreService.uploadProfileImage(uid, state.image!);
-      } catch (e) {
+      } catch (_) {
         emit(state.copyWith(isError: true, isLoading: false));
         return;
       }
@@ -79,13 +82,15 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
 
     final data = {
       "fullName": event.fullName,
-      "job": event.job,
-      "about": event.about,
       "dob": event.dob,
-      "address": event.address,
-      "email": event.email,
-      "phone": event.phone,
       "gender": event.gender,
+      "address": event.address,
+      "degree": event.degree,
+      "institution": event.institution,
+      "yearOfPassing": event.yearOfPassing,
+      "jobTitle": event.jobTitle,
+      "company": event.company,
+      "experience": event.experience,
       "image": imageUrl ?? state.imageUrl ?? "",
     };
 
@@ -97,7 +102,7 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
         await firestoreService.createUserProfile(uid, data);
       }
       emit(state.copyWith(isSuccess: true, isLoading: false));
-    } catch (e) {
+    } catch (_) {
       emit(state.copyWith(isError: true, isLoading: false));
     }
   }

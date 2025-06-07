@@ -19,26 +19,40 @@ class UpdateImage extends EditProfileEvent {
 
 class SubmitProfile extends EditProfileEvent {
   final String fullName;
-  final String job;
-  final String about;
   final String dob;
-  final String address;
-  final String email;
-  final String phone;
   final String gender;
+  final String address;
+  final String degree;
+  final String institution;
+  final String yearOfPassing;
+  final String jobTitle;
+  final String company;
+  final String experience;
 
   SubmitProfile({
     required this.fullName,
-    required this.job,
-    required this.about,
     required this.dob,
-    required this.address,
-    required this.email,
-    required this.phone,
     required this.gender,
+    required this.address,
+    required this.degree,
+    required this.institution,
+    required this.yearOfPassing,
+    required this.jobTitle,
+    required this.company,
+    required this.experience,
   });
 
   @override
-  List<Object?> get props =>
-      [fullName, job, about, dob, address, email, phone, gender];
+  List<Object?> get props => [
+    fullName,
+    dob,
+    gender,
+    address,
+    degree,
+    institution,
+    yearOfPassing,
+    jobTitle,
+    company,
+    experience,
+  ];
 }

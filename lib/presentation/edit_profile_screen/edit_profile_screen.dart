@@ -1,304 +1,271 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:user_profile_management_app/presentation/edit_profile_screen/bloc/edit_profile_screen_bloc.dart';
 import 'package:user_profile_management_app/presentation/edit_profile_screen/bloc/edit_profile_screen_event.dart';
 import 'package:user_profile_management_app/presentation/edit_profile_screen/bloc/edit_profile_screen_state.dart';
-import 'package:user_profile_management_app/utils/validator.dart';
-import 'package:user_profile_management_app/presentation/home_screen/home_screen.dart';
+
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  const EditProfileScreen({Key? key}) : super(key: key);
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController jobController = TextEditingController();
-  final TextEditingController dobController = TextEditingController();
-  final TextEditingController aboutController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _dobController;
+  late final TextEditingController _addressController;
+  late final TextEditingController _degreeController;
+  late final TextEditingController _institutionController;
+  late final TextEditingController _yearOfPassingController;
+  late final TextEditingController _jobTitleController;
+  late final TextEditingController _companyController;
+  late final TextEditingController _experienceController;
 
-  String? selectedGender;
+  String? _selectedGender;
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+
+    _fullNameController = TextEditingController();
+    _dobController = TextEditingController();
+    _addressController = TextEditingController();
+    _degreeController = TextEditingController();
+    _institutionController = TextEditingController();
+    _yearOfPassingController = TextEditingController();
+    _jobTitleController = TextEditingController();
+    _companyController = TextEditingController();
+    _experienceController = TextEditingController();
+
     context.read<EditProfileBloc>().add(LoadUserProfile());
   }
 
-  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _dobController.dispose();
+    _addressController.dispose();
+    _degreeController.dispose();
+    _institutionController.dispose();
+    _yearOfPassingController.dispose();
+    _jobTitleController.dispose();
+    _companyController.dispose();
+    _experienceController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source);
+    final pickedFile =
+    await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+
     if (pickedFile != null) {
-      context.read<EditProfileBloc>().add(UpdateImage(File(pickedFile.path)));
+      final file = File(pickedFile.path);
+      context.read<EditProfileBloc>().add(UpdateImage(file));
     }
   }
 
-  void _showImageSourceActionSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a photo'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(context, ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(context, ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    DateTime initialDate = DateTime.now();
-    if (dobController.text.isNotEmpty) {
-      try {
-        initialDate = DateTime.parse(dobController.text);
-      } catch (_) {}
-    }
-
+  Future<void> _selectDob() async {
+    final initialDate = DateTime.tryParse(_dobController.text) ?? DateTime(1990);
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-
     if (picked != null) {
-      dobController.text = picked.toIso8601String().split('T')[0];
+      _dobController.text = picked.toIso8601String().split('T')[0]; // yyyy-mm-dd
+      setState(() {});
     }
   }
 
-  void _submitProfile(BuildContext context, EditProfileState state) {
-    if (_formKey.currentState!.validate()) {
-      context.read<EditProfileBloc>().add(
-        SubmitProfile(
-          fullName: fullNameController.text.trim(),
-          job: jobController.text.trim(),
-          about: aboutController.text.trim(),
-          dob: dobController.text.trim(),
-          address: addressController.text.trim(),
-          email: emailController.text.trim(),
-          phone: phoneController.text.trim(),
-          gender: selectedGender ?? '',
-        ),
-      );
+  void _submit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      context.read<EditProfileBloc>().add(SubmitProfile(
+        fullName: _fullNameController.text.trim(),
+        dob: _dobController.text.trim(),
+        gender: _selectedGender ?? "",
+        address: _addressController.text.trim(),
+        degree: _degreeController.text.trim(),
+        institution: _institutionController.text.trim(),
+        yearOfPassing: _yearOfPassingController.text.trim(),
+        jobTitle: _jobTitleController.text.trim(),
+        company: _companyController.text.trim(),
+        experience: _experienceController.text.trim(),
+      ));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<EditProfileBloc, EditProfileState>(
-      listener: (context, state) {
-        if (state.isSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Profile updated successfully!")),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        } else if (state.isError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to update profile")),
-          );
-        }
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+      ),
+      body: BlocConsumer<EditProfileBloc, EditProfileState>(
+        listener: (context, state) {
+          if (state.isSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Profile updated successfully')),
+            );
+          } else if (state.isError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Error updating profile')),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        // Populate controllers on initial load from state
-        if (!state.isLoading && fullNameController.text.isEmpty) {
-          fullNameController.text = state.fullName;
-          jobController.text = state.job;
-          dobController.text = state.dob;
-          aboutController.text = state.about;
-          addressController.text = state.address;
-          emailController.text = state.email;
-          phoneController.text = state.phone;
-          selectedGender = state.gender.isNotEmpty ? state.gender : null;
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(title: const Text("Edit Profile")),
-          body: state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+          // Update controllers with loaded data (avoid infinite loop by checking if changed)
+          if (_fullNameController.text != state.fullName) {
+            _fullNameController.text = state.fullName;
+          }
+          if (_dobController.text != state.dob) {
+            _dobController.text = state.dob;
+          }
+          if (_addressController.text != state.address) {
+            _addressController.text = state.address;
+          }
+          if (_degreeController.text != state.degree) {
+            _degreeController.text = state.degree;
+          }
+          if (_institutionController.text != state.institution) {
+            _institutionController.text = state.institution;
+          }
+          if (_yearOfPassingController.text != state.yearOfPassing) {
+            _yearOfPassingController.text = state.yearOfPassing;
+          }
+          if (_jobTitleController.text != state.jobTitle) {
+            _jobTitleController.text = state.jobTitle;
+          }
+          if (_companyController.text != state.company) {
+            _companyController.text = state.company;
+          }
+          if (_experienceController.text != state.experience) {
+            _experienceController.text = state.experience;
+          }
+          if (_selectedGender != state.gender && state.gender.isNotEmpty) {
+            _selectedGender = state.gender;
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      GestureDetector(
-                        onTap: () => _showImageSourceActionSheet(context),
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundImage: state.image != null
-                              ? FileImage(state.image!)
-                              : (state.imageUrl != null &&
-                              state.imageUrl!.isNotEmpty)
-                              ? NetworkImage(state.imageUrl!)
-                          as ImageProvider
-                              : null,
-                          child: state.image == null &&
-                              (state.imageUrl == null ||
-                                  state.imageUrl!.isEmpty)
-                              ? Image.asset(
-                            'assets/images/profile.png',
-                            height: 200,
-                          )
-                              : null,
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: GestureDetector(
-                          onTap: () =>
-                              _showImageSourceActionSheet(context),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(6),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: fullNameController,
-                    decoration:
-                    const InputDecoration(labelText: "Full Name"),
-                    validator: (v) =>
-                        Validators.validateNotEmpty(v, "Full Name"),
-                  ),
-                  TextFormField(
-                    controller: jobController,
-                    decoration: const InputDecoration(labelText: "Job"),
-                    validator: (v) =>
-                        Validators.validateNotEmpty(v, "Job"),
-                  ),
-                  TextFormField(
-                    controller: dobController,
-                    readOnly: true,
-                    decoration: const InputDecoration(
-                      labelText: "Date of Birth",
-                      suffixIcon: Icon(Icons.calendar_today),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundImage: state.image != null
+                          ? FileImage(state.image!)
+                          : (state.imageUrl != null && state.imageUrl!.isNotEmpty)
+                          ? NetworkImage(state.imageUrl!) as ImageProvider
+                          : const AssetImage('assets/images/profile_placeholder.png'),
                     ),
-                    onTap: () => _selectDate(context),
-                    validator: (v) =>
-                        Validators.validateNotEmpty(v, "Date of Birth"),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Personal Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _fullNameController,
+                    decoration: const InputDecoration(labelText: 'Name'),
+                    validator: (val) =>
+                    val == null || val.isEmpty ? 'Please enter name' : null,
+                  ),
+                  GestureDetector(
+                    onTap: _selectDob,
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        controller: _dobController,
+                        decoration: const InputDecoration(
+                          labelText: 'Date of Birth',
+                          suffixIcon: Icon(Icons.calendar_today),
+                        ),
+                        validator: (val) =>
+                        val == null || val.isEmpty ? 'Please select date of birth' : null,
+                      ),
+                    ),
                   ),
                   DropdownButtonFormField<String>(
-                    value: selectedGender,
+                    value: _selectedGender?.isNotEmpty == true ? _selectedGender : null,
                     items: const [
                       DropdownMenuItem(value: 'Male', child: Text('Male')),
-                      DropdownMenuItem(
-                          value: 'Female', child: Text('Female')),
+                      DropdownMenuItem(value: 'Female', child: Text('Female')),
                       DropdownMenuItem(value: 'Other', child: Text('Other')),
                     ],
                     onChanged: (val) {
                       setState(() {
-                        selectedGender = val;
+                        _selectedGender = val;
                       });
                     },
-                    decoration: const InputDecoration(labelText: "Gender"),
-                    validator: (v) => v == null || v.isEmpty
-                        ? "Please select gender"
-                        : null,
+                    decoration: const InputDecoration(labelText: 'Gender'),
+                    validator: (val) => val == null || val.isEmpty ? 'Please select gender' : null,
                   ),
                   TextFormField(
-                    controller: addressController,
-                    decoration:
-                    const InputDecoration(labelText: "Address"),
-                    validator: (v) =>
-                        Validators.validateNotEmpty(v, "Address"),
+                    controller: _addressController,
+                    decoration: const InputDecoration(labelText: 'Address'),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Education', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _degreeController,
+                    decoration: const InputDecoration(labelText: 'Degree'),
                   ),
                   TextFormField(
-                    controller: emailController,
-                    decoration:
-                    const InputDecoration(labelText: "Email ID"),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) => Validators.validateEmail(v)
-                        ? null
-                        : "Enter valid email",
+                    controller: _institutionController,
+                    decoration: const InputDecoration(labelText: 'Institution'),
                   ),
                   TextFormField(
-                    controller: phoneController,
-                    decoration:
-                    const InputDecoration(labelText: "Phone Number"),
-                    keyboardType: TextInputType.phone,
-                    validator: (v) => Validators.validatePhone(v)
-                        ? null
-                        : "Enter valid phone",
+                    controller: _yearOfPassingController,
+                    decoration: const InputDecoration(labelText: 'Year of Passing'),
+                    keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  const Text('Occupation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
                   TextFormField(
-                    controller: aboutController,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: "About",
-                      alignLabelWithHint: true,
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) =>
-                        Validators.validateNotEmpty(v, "About"),
+                    controller: _jobTitleController,
+                    decoration: const InputDecoration(labelText: 'Job Title'),
                   ),
-                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _companyController,
+                    decoration: const InputDecoration(labelText: 'Company'),
+                  ),
+                  TextFormField(
+                    controller: _experienceController,
+                    decoration: const InputDecoration(labelText: 'Experience'),
+                  ),
+                  const SizedBox(height: 32),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.blueAccent,
                     ),
-                    onPressed: () => _submitProfile(context, state),
+                    onPressed: state.isLoading ? null : _submit,
                     child: const Text(
-                      "Submit",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16),
+                      'Save Profile',
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
