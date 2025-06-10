@@ -1,4 +1,3 @@
-// auth_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../api_services/firebase_auth_service.dart';
 import 'authentication_event.dart';
@@ -15,7 +14,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onSignUp(AuthSignUp event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(isLoading: true, error: null, isSignUpSuccess: false));
     try {
       final user = await _authService.signUp(event.email, event.password);
       emit(state.copyWith(
@@ -23,14 +22,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         isLoggedIn: true,
         uid: user?.uid,
         isNewlyRegistered: true,
+        isSignUpSuccess: true,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, error: e.toString()));
+      emit(state.copyWith(isLoading: false, error: e.toString(), isSignUpSuccess: false));
     }
   }
 
   Future<void> _onSignIn(AuthSignIn event, Emitter<AuthState> emit) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(isLoading: true, error: null, isSignUpSuccess: false));
     try {
       final user = await _authService.signIn(event.email, event.password);
       emit(state.copyWith(
@@ -47,7 +47,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onCheckLoggedIn(AuthCheckLoggedIn event, Emitter<AuthState> emit) async {
     final user = _authService.getCurrentUser();
     if (user != null) {
-      emit(state.copyWith(isLoggedIn: true, uid: user.uid, isNewlyRegistered: false));
+      emit(state.copyWith(
+        isLoggedIn: true,
+        uid: user.uid,
+        isNewlyRegistered: false,
+        isSignUpSuccess: false,
+      ));
     }
   }
 
@@ -55,4 +60,5 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _authService.signOut();
     emit(AuthState());
   }
+
 }

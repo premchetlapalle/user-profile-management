@@ -1,4 +1,3 @@
-// authentication_event.dart
 abstract class AuthEvent {}
 
 class AuthSignUp extends AuthEvent {

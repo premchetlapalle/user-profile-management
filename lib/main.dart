@@ -41,7 +41,6 @@ class MyApp extends StatelessWidget {
           '/forgot-password': (_) => const ForgotPasswordScreen(),
           '/home': (_) => const HomeScreen(),
 
-          // Wrap EditProfileScreen with BlocProvider for EditProfileBloc
           '/edit-profile': (context) => BlocProvider(
             create: (_) => EditProfileBloc(
               firestoreService: FirestoreService(),

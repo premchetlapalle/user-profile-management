@@ -28,15 +28,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state.isLoggedIn) {
-          if (state.isNewlyRegistered) {
-            Navigator.pushReplacementNamed(context, '/edit-profile');
-          } else {
-            Navigator.pushReplacementNamed(context, '/home');
-          }
+        if (state.isSignUpSuccess) {
+          Navigator.pushReplacementNamed(context, '/edit-profile');
         } else if (state.error != null) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(state.error!)));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error!)),
+          );
         }
       },
       builder: (context, state) {
@@ -130,11 +127,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       validator: (value) {
-                        final notEmptyError =
-                        Validators.validateNotEmpty(value, "Password");
+                        final notEmptyError = Validators.validateNotEmpty(value, "Password");
                         if (notEmptyError != null) return notEmptyError;
-                        final passwordStrengthError =
-                        Validators.validatePassword(value!);
+                        final passwordStrengthError = Validators.validatePassword(value!);
                         return passwordStrengthError;
                       },
                     ),
@@ -174,8 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       validator: (value) {
-                        final notEmptyError = Validators.validateNotEmpty(
-                            value, "Confirm Password");
+                        final notEmptyError = Validators.validateNotEmpty(value, "Confirm Password");
                         if (notEmptyError != null) return notEmptyError;
                         if (value != passwordController.text) {
                           return "Password and Confirm Password don't match";
@@ -191,9 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (_formKey.currentState!.validate()) {
                           final email = emailController.text.trim();
                           final password = passwordController.text.trim();
-                          context
-                              .read<AuthBloc>()
-                              .add(AuthSignUp(email, password));
+                          context.read<AuthBloc>().add(AuthSignUp(email, password));
                         } else {
                           setState(() {
                             _autoValidate = true;

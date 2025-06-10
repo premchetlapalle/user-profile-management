@@ -26,10 +26,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _experienceController;
 
   String? _selectedGender;
-
   final _formKey = GlobalKey<FormState>();
 
-  // Common rounded input decoration
+  bool _isInitialLoadDone = false;
+
   final InputDecoration roundedInputDecoration = InputDecoration(
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(30),
@@ -48,7 +48,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-
     _fullNameController = TextEditingController();
     _dobController = TextEditingController();
     _addressController = TextEditingController();
@@ -78,7 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source, imageQuality: 80);
+    final pickedFile = await picker.pickImage(source: source, imageQuality: 50);
 
     if (pickedFile != null) {
       final file = File(pickedFile.path);
@@ -117,18 +116,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _selectDob() async {
-    final initialDate = DateTime.tryParse(_dobController.text) ?? DateTime(1990);
+    final String dobText = _dobController.text.trim();
+    final initialDate = dobText.isNotEmpty
+        ? DateTime.tryParse(dobText) ?? DateTime.now()
+        : DateTime.now();
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime(1900),
+      firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      _dobController.text = picked.toIso8601String().split('T')[0]; // yyyy-mm-dd
+      _dobController.text = picked.toIso8601String().split('T')[0];
       setState(() {});
     }
   }
+
 
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -159,6 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Profile updated successfully')),
             );
+            Navigator.pushReplacementNamed(context, '/home');
           } else if (state.isError) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Error updating profile')),
@@ -166,40 +170,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           }
         },
         builder: (context, state) {
-          if (state.isLoading) {
+          if (state.isLoading && !_isInitialLoadDone) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Update controllers with loaded data (avoid infinite loop by checking if changed)
-          if (_fullNameController.text != state.fullName) {
+          if (!_isInitialLoadDone && state.fullName.isNotEmpty) {
             _fullNameController.text = state.fullName;
-          }
-          if (_dobController.text != state.dob) {
             _dobController.text = state.dob;
-          }
-          if (_addressController.text != state.address) {
             _addressController.text = state.address;
-          }
-          if (_degreeController.text != state.degree) {
             _degreeController.text = state.degree;
-          }
-          if (_institutionController.text != state.institution) {
             _institutionController.text = state.institution;
-          }
-          if (_yearOfPassingController.text != state.yearOfPassing) {
             _yearOfPassingController.text = state.yearOfPassing;
-          }
-          if (_jobTitleController.text != state.jobTitle) {
             _jobTitleController.text = state.jobTitle;
-          }
-          if (_companyController.text != state.company) {
             _companyController.text = state.company;
-          }
-          if (_experienceController.text != state.experience) {
             _experienceController.text = state.experience;
-          }
-          if (_selectedGender != state.gender && state.gender.isNotEmpty) {
-            _selectedGender = state.gender;
+            _selectedGender = state.gender.isNotEmpty ? state.gender : null;
+            _isInitialLoadDone = true;
           }
 
           return SingleChildScrollView(
@@ -209,7 +195,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Profile image with camera icon overlay
                   Center(
                     child: GestureDetector(
                       onTap: _showImageSourceActionSheet,
@@ -221,7 +206,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ? FileImage(state.image!)
                                 : (state.imageUrl != null && state.imageUrl!.isNotEmpty)
                                 ? NetworkImage(state.imageUrl!) as ImageProvider
-                                : const AssetImage('assets/images/profile_placeholder.png'),
+                                : const AssetImage('assets/images/profile.png'),
                           ),
                           Positioned(
                             bottom: 0,
@@ -251,8 +236,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   TextFormField(
                     controller: _fullNameController,
                     decoration: roundedInputDecoration.copyWith(labelText: 'Name'),
-                    validator: (val) =>
-                    val == null || val.isEmpty ? 'Please enter name' : null,
+                    validator: (val) => val == null || val.isEmpty ? 'Please enter name' : null,
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
@@ -264,9 +248,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           labelText: 'Date of Birth',
                           suffixIcon: const Icon(Icons.calendar_today),
                         ),
-                        validator: (val) => val == null || val.isEmpty
-                            ? 'Please select date of birth'
-                            : null,
+                        validator: (val) =>
+                        val == null || val.isEmpty ? 'Please select date of birth' : null,
                       ),
                     ),
                   ),
@@ -276,7 +259,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     items: const [
                       DropdownMenuItem(value: 'Male', child: Text('Male')),
                       DropdownMenuItem(value: 'Female', child: Text('Female')),
-                      DropdownMenuItem(value: 'Other', child: Text('Other')),
+                      DropdownMenuItem(value: 'Prefer not to say', child: Text('Prefer not to say')),
                     ],
                     onChanged: (val) {
                       setState(() {

@@ -98,7 +98,7 @@ class UserProfileScreen extends StatelessWidget {
                                 const SizedBox(height: 10),
                                 LabelValueRow(
                                     label: "Job Title",
-                                    value: data["job"] ?? ""),
+                                    value: data["jobTitle"] ?? ""),
                                 LabelValueRow(
                                     label: "Company",
                                     value: data["company"] ?? ""),

@@ -34,8 +34,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-
     return BlocProvider(
       create: (_) =>
       HomeBloc(firestoreService: FirestoreService())..add(LoadUsersEvent()),
@@ -90,7 +88,8 @@ class HomeScreen extends StatelessWidget {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16),
                     ),
                     onChanged: (query) {
                       context.read<HomeBloc>().add(SearchUserEvent(query));
@@ -104,12 +103,18 @@ class HomeScreen extends StatelessWidget {
                       if (state is HomeLoading) {
                         return const Center(child: CircularProgressIndicator());
                       } else if (state is HomeLoaded) {
-                        final users = state.users
-                            .where((user) => user["id"] != currentUser!.uid)
+                        final currentUser = FirebaseAuth.instance.currentUser;
+
+                        // Only filter if currentUser is not null
+                        final users = currentUser == null
+                            ? state.users
+                            : state.users
+                            .where((user) => user["id"] != currentUser.uid)
                             .toList();
 
                         if (users.isEmpty) {
-                          return const Center(child: Text("No other users found."));
+                          return const Center(
+                              child: Text("No other users found."));
                         }
 
                         return ListView.builder(
@@ -125,20 +130,22 @@ class HomeScreen extends StatelessWidget {
                                   _getUserImageProvider(data["image"]),
                                   child: (data["image"] == null ||
                                       data["image"].toString().isEmpty)
-                                      ? Image.asset('assets/images/profile.png',
+                                      ? Image.asset(
+                                      'assets/images/profile.png',
                                       height: 200)
                                       : null,
                                 ),
                                 title: Text(
                                   data["fullName"] ?? "",
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w500, fontSize: 20),
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 20),
                                 ),
                                 onTap: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        UserProfileScreen(userId: data["id"]),
+                                    builder: (_) => UserProfileScreen(
+                                        userId: data["id"]),
                                   ),
                                 ),
                               ),
@@ -146,7 +153,8 @@ class HomeScreen extends StatelessWidget {
                           },
                         );
                       } else if (state is HomeError) {
-                        return Center(child: Text("Error: ${state.message}"));
+                        return Center(
+                            child: Text("Error: ${state.message}"));
                       }
                       return const SizedBox.shrink();
                     },
